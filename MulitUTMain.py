@@ -15,6 +15,7 @@ import queue
 import datetime
 from PublicLib.SerialModule.simSerial import simSerial
 import logging
+from PublicLib.public import *
 
 logger = logging.getLogger('MulitUTMain')
 
@@ -33,10 +34,9 @@ class UartTest():
 
         senddelayinit = cfgdata['timeout'] / 0.01
         senddelay = senddelayinit
-        sfe = cfgdata['send'][0].replace(' ', '')
-
-        if cfgdata['autoresp'] == 1:
-            cfgdata['sendcnt'] = 0
+        sfe = cfgdata['send'].replace(' ', '')
+        # 增加帧序号 2字节
+        sn = 0
 
         while 1:
             time.sleep(0.01)
@@ -44,20 +44,19 @@ class UartTest():
                 senddelay -= 1
             else:
                 senddelay = senddelayinit
-                if cfgdata['sendcnt'] > 0 or cfgdata['autoresp'] == 1:
-                    fe = self.addspace(sfe)
+                if cfgdata['sendcnt'] > 0 and cfgdata['autoresp'] == 1:
+                    sn += 1
+                    strsn = hex(sn).replace('0x', '0000')[-4:]
+                    snfe = strsn + sfe
+                    fe = self.addspace(snfe)
                     ss.onSendData(ser, fe, 'hex')
 
                     # 打印 或 日志记录
                     # print(datetime.datetime.now(), cfgparm['port'], 'Send:', sfe)
                     lg = str(datetime.datetime.now()) + '  ' + cfgparm['port'] + '  ' + 'Send:' + sfe
                     logger.info(lg)
-
-                    cfgdata['sendbytecnt'] += (len(sfe) / 2)
-                    if cfgdata['autoresp'] == 0:
-                        cfgdata['sendcnt'] -= 1
-                    else:
-                        cfgdata['sendcnt'] += 1
+                    cfgdata['sendbytecnt'] += (len(sfe) // 2)
+                    cfgdata['sendcnt'] -= 1
                 elif cfgdata['sendcnt'] == 0:
                     lg = str(datetime.datetime.now()) + '  ' + cfgparm['port']  + '  ' + str(cfgdata['sendcnt']) + ',' + str(
                         cfgdata['sendbytecnt']) + ',' + str(cfgdata['recvcnt']) + ',' + str(cfgdata['recvbytecnt'])
@@ -71,12 +70,10 @@ class UartTest():
                 logger.info(lg)
 
                 cfgdata['recvcnt'] += 1
-                cfgdata['recvbytecnt'] += (len(rfe) / 2)
+                cfgdata['recvbytecnt'] += (len(rfe) // 2)
 
 
     def uart_test(self, cfgparm, cfgdata):
-        logger = logging.getLogger(__name__)
-
         # 创建 模拟表串口
         ss = simSerial()
         q = queue.Queue()
@@ -96,39 +93,18 @@ if __name__ == '__main__':
     logger = logging.getLogger(__name__)
     logger.info('Mulit Uart Test Start')
 
-    cfg_uart_parm_1 = dict(port='COM30', baud='9600', parity="Even", bytesize=8, stopbits=1, timeout=1)
-    cfg_uart_parm_2 = dict(port='COM31', baud='9600', parity="Even", bytesize=8, stopbits=1, timeout=1)
-    cfg_uart_parm_3 = dict(port='COM32', baud='9600', parity="Even", bytesize=8, stopbits=1, timeout=1)
-    cfg_uart_parm_4 = dict(port='COM33', baud='9600', parity="Even", bytesize=8, stopbits=1, timeout=1)
-    cfg_uart_parm_5 = dict(port='COM34', baud='9600', parity="Even", bytesize=8, stopbits=1, timeout=1)
+    cfg = loadDefaultSettings('MulitUTMainCfg.json')
 
-    teststr = 'FEFEFEFE689100C30572670190312000947D9000788502390200800200010105060000000006000000000600000000060000000006000000001010020001010502020600000CF21C07E4030116210002020600000CE91C07E40302023B0002020600000CF01C07E40302031D0002020600000CED1C07E4030114120002020600'
+    cfg_uart_parm_list = cfg['uartcfg']
+    teststr = cfg['teststr']
+    cfg_uart_data_list = cfg['datacfg']
 
-    cfg_uart_data_1 = dict(recv='68123456789016', send=[teststr], timeout=0.5, autoresp=1, sendbytecnt=0,
-                           sendcnt=10, recvbytecnt=0, recvcnt=0)
-    cfg_uart_data_2 = dict(recv='68123456789016', send=[teststr], timeout=0.5, autoresp=0, sendbytecnt=0,
-                           sendcnt=10, recvbytecnt=0, recvcnt=0)
-    cfg_uart_data_3 = dict(recv='68123456789016', send=[teststr], timeout=0.5, autoresp=0, sendbytecnt=0,
-                           sendcnt=10, recvbytecnt=0, recvcnt=0)
-    cfg_uart_data_4 = dict(recv='68123456789016', send=[teststr], timeout=0.5, autoresp=0, sendbytecnt=0,
-                           sendcnt=10, recvbytecnt=0, recvcnt=0)
-    cfg_uart_data_5 = dict(recv='68123456789016', send=[teststr], timeout=0.5, autoresp=0, sendbytecnt=0,
-                           sendcnt=10, recvbytecnt=0, recvcnt=0)
-
-    cfg_uart_parm_list = [cfg_uart_parm_1, cfg_uart_parm_2, cfg_uart_parm_3, cfg_uart_parm_4, cfg_uart_parm_5]
-    cfg_uart_data_list = [cfg_uart_data_1, cfg_uart_data_2, cfg_uart_data_3, cfg_uart_data_4, cfg_uart_data_5]
-
-
-    uart1thread = UartTest()
-    uart2thread = UartTest()
-    uart3thread = UartTest()
-    uart4thread = UartTest()
-    uart5thread = UartTest()
-
-    threadNum = 5
+    threadNum = cfg['Num']
 
     for i in range(threadNum):
-        threading.Thread(target=uart1thread.uart_test, args=(cfg_uart_parm_list[i], cfg_uart_data_list[i])).start()
+        ut = UartTest()
+        cfg_uart_data_list[i]['send'] = teststr
+        threading.Thread(target=ut.uart_test, args=(cfg_uart_parm_list[i], cfg_uart_data_list[i])).start()
 
     while 1:
         time.sleep(1)
@@ -148,8 +124,8 @@ if __name__ == '__main__':
             printstr = ''
             for i in range(threadNum):
                 printstr += cfg_uart_parm_list[i]['port'] + ': '\
-                            + str(cfg_uart_data_list[i]['sendcnt'])+ ','\
-                            + str(cfg_uart_data_list[i]['sendbytecnt']) \
-                            + str(cfg_uart_data_list[i]['sendcnt']) + ','\
-                            + str(cfg_uart_data_list[i]['sendbytecnt']) + ';  '
+                            + str(cfg_uart_data_list[i]['sendcnt'])+ ', '\
+                            + str(cfg_uart_data_list[i]['sendbytecnt']) + ', ' \
+                            + str(cfg_uart_data_list[i]['recvcnt']) + ', '\
+                            + str(cfg_uart_data_list[i]['recvbytecnt']) + ';  '
             print(printstr)

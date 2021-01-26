@@ -1,0 +1,10 @@
+{
+  "Num": 5,
+  "uartcfg": [
+    {"port":"COM40", "baud":"9600","parity": "Even", "bytesize":8, "stopbits":1,"timeout": 1},
+    {"port":"COM41", "baud":"9600","parity": "Even", "bytesize":8, "stopbits":1,"timeout": 1},
+    {"port":"COM42", "baud":"9600","parity": "Even", "bytesize":8, "stopbits":1,"timeout": 1},
+    {"port":"COM43", "baud":"9600","parity": "Even", "bytesize":8, "stopbits":1,"timeout": 1},
+    {"port":"COM44", "baud":"9600","parity": "Even", "bytesize":8, "stopbits":1,"timeout": 1}
+  ]
+}

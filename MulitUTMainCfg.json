@@ -1,0 +1,18 @@
+{
+  "Num": 5,
+  "uartcfg": [
+    {"port":"COM30", "baud":"9600","parity": "Even", "bytesize":8, "stopbits":1,"timeout": 1},
+    {"port":"COM31", "baud":"9600","parity": "Even", "bytesize":8, "stopbits":1,"timeout": 1},
+    {"port":"COM32", "baud":"9600","parity": "Even", "bytesize":8, "stopbits":1,"timeout": 1},
+    {"port":"COM33", "baud":"9600","parity": "Even", "bytesize":8, "stopbits":1,"timeout": 1},
+    {"port":"COM34", "baud":"9600","parity": "Even", "bytesize":8, "stopbits":1,"timeout": 1}
+  ],
+  "teststr": "FEFEFEFE689100C30572670190312000947D9000788502390200800200010105060000000006000000000600000000060000000006000000001010020001010502020600000CF21C07E4030116210002020600000CE91C07E40302023B0002020600000CF01C07E40302031D0002020600000CED1C07E4030114120002020600",
+  "datacfg": [
+    {"recv":"68123456789016", "send":["teststr"], "timeout":0.5, "autoresp":1, "sendbytecnt":0, "sendcnt":10, "recvbytecnt":0, "recvcnt":0},
+    {"recv":"68123456789016", "send":["teststr"], "timeout":0.5, "autoresp":1, "sendbytecnt":0, "sendcnt":10, "recvbytecnt":0, "recvcnt":0},
+    {"recv":"68123456789016", "send":["teststr"], "timeout":0.5, "autoresp":1, "sendbytecnt":0, "sendcnt":10, "recvbytecnt":0, "recvcnt":0},
+    {"recv":"68123456789016", "send":["teststr"], "timeout":0.5, "autoresp":1, "sendbytecnt":0, "sendcnt":10, "recvbytecnt":0, "recvcnt":0},
+    {"recv":"68123456789016", "send":["teststr"], "timeout":0.5, "autoresp":1, "sendbytecnt":0, "sendcnt":10, "recvbytecnt":0, "recvcnt":0}
+  ]
+}
