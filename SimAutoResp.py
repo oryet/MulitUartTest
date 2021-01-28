@@ -10,10 +10,10 @@ class MtrUartTest():
             keepalive[n] = 0
             time.sleep(0.01)
             str = ss.DReadPort()  # 读串口数据
-            if len(str) > 10:
-                print(cfg['port'], str)
-                s = frameaddspace(str)
-                ss.onSendData(ser, s, 'hex')
+            if len(str) > 0:
+                if str.isalnum():
+                    s = frameaddspace(str)
+                    ss.onSendData(ser, s, 'hex')
 
 
 if __name__ == '__main__':
