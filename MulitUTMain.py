@@ -14,7 +14,7 @@ import time
 import queue
 import datetime
 from PublicLib.SerialModule.simSerial import simSerial
-import logging
+import random
 from PublicLib.public import *
 
 logger = logging.getLogger('MulitUTMain')
@@ -35,6 +35,10 @@ class UartTest():
         senddelayinit = cfgdata['timeout'] / 0.01
         senddelay = senddelayinit
         sfe = cfgdata['send'].replace(' ', '')
+        strLen = len(sfe)//2
+        if strLen < 10:
+            print('send frame len < 10, error!')
+            return
         # 增加帧序号 2字节
         sn = 0
 
@@ -47,15 +51,18 @@ class UartTest():
                 if cfgdata['sendcnt'] > 0 and cfgdata['autoresp'] == 1:
                     sn += 1
                     strsn = hex(sn).replace('0x', '0000')[-4:]
-                    snfe = strsn + sfe
+                    srfe = sfe
+                    if cfgdata['randEn']:
+                        srfe = sfe[:random.randint(10, strLen)*2]
+                    snfe = strsn + srfe[:-4]
                     fe = self.addspace(snfe)
                     ss.onSendData(ser, fe, 'hex')
 
                     # 打印 或 日志记录
                     # print(datetime.datetime.now(), cfgparm['port'], 'Send:', sfe)
-                    lg = str(datetime.datetime.now()) + '  ' + cfgparm['port'] + '  ' + 'Send:' + sfe
+                    lg = str(datetime.datetime.now()) + '  ' + cfgparm['port'] + '  ' + 'Send:' + snfe
                     logger.info(lg)
-                    cfgdata['sendbytecnt'] += (len(sfe) // 2)
+                    cfgdata['sendbytecnt'] += (len(snfe) // 2)
                     cfgdata['sendcnt'] -= 1
                 elif cfgdata['sendcnt'] == 0:
                     lg = str(datetime.datetime.now()) + '  ' + cfgparm['port']  + '  ' + str(cfgdata['sendcnt']) + ',' + str(
@@ -82,6 +89,7 @@ class UartTest():
             threading.Thread(target=self.uart_send, args=(q, ss, ser, cfgparm, cfgdata)).start()
 
         while openret:
+            time.sleep(0.01)
             str = ss.DReadPort()  # 读串口数据
             # 协议判断 或 帧长度判断
             if len(str) > 10:
@@ -100,10 +108,14 @@ if __name__ == '__main__':
     cfg_uart_data_list = cfg['datacfg']
 
     threadNum = cfg['Num']
+    randEn = 0
+    if 'rand' in cfg:
+        randEn = cfg['rand']
 
     for i in range(threadNum):
         ut = UartTest()
         cfg_uart_data_list[i]['send'] = teststr
+        cfg_uart_data_list[i]['randEn'] = randEn
         threading.Thread(target=ut.uart_test, args=(cfg_uart_parm_list[i], cfg_uart_data_list[i])).start()
 
     while 1:
