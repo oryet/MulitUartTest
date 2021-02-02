@@ -118,21 +118,19 @@ if __name__ == '__main__':
         cfg_uart_data_list[i]['randEn'] = randEn
         threading.Thread(target=ut.uart_test, args=(cfg_uart_parm_list[i], cfg_uart_data_list[i])).start()
 
+    printEn = 0
+
     while 1:
         time.sleep(1)
-        printEn = 0
-        for i in range(threadNum):
-            if cfg_uart_data_list[i]['autoresp'] == 1:
-                printEn = 1
-                break
-
-        if printEn == 0:
+        if printEn >= 0:
             for i in range(threadNum):
-                if cfg_uart_data_list[i]['sendcnt'] > 0:
-                    printEn = 1
+                if cfg_uart_data_list[i]['sendcnt'] >= 0:
+                    printEn = 3
                     break
+            printEn -= 1
 
-        if printEn:
+
+        if printEn > 0:
             printstr = ''
             for i in range(threadNum):
                 printstr += cfg_uart_parm_list[i]['port'] + ': '\
